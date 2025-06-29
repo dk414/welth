@@ -50,6 +50,9 @@ export default function EmailTemplate({
   type = "monthly-report",
   data = {},
 }) {
+  // fallback to dummy preview data for safety
+  const safeData = data ?? PREVIEW_DATA[type]?.data ?? {};
+
   if (type === "monthly-report") {
     return (
       <Html>
@@ -61,32 +64,40 @@ export default function EmailTemplate({
 
             <Text style={styles.text}>Hello {userName},</Text>
             <Text style={styles.text}>
-              Here&rsquo;s your financial summary for {data?.month}:
+              Here&rsquo;s your financial summary for {safeData?.month || "this month"}:
             </Text>
 
-            {/* Main Stats */}
-            <Section style={styles.statsContainer}>
-              <div style={styles.stat}>
-                <Text style={styles.text}>Total Income</Text>
-                <Text style={styles.heading}>${data?.stats.totalIncome}</Text>
-              </div>
-              <div style={styles.stat}>
-                <Text style={styles.text}>Total Expenses</Text>
-                <Text style={styles.heading}>${data?.stats.totalExpenses}</Text>
-              </div>
-              <div style={styles.stat}>
-                <Text style={styles.text}>Net</Text>
-                <Text style={styles.heading}>
-                  ${data?.stats.totalIncome - data?.stats.totalExpenses}
-                </Text>
-              </div>
-            </Section>
+            {/* ✅ Add conditional rendering to avoid undefined stats access */}
+            {safeData?.stats && (
+              <Section style={styles.statsContainer}>
+                <div style={styles.stat}>
+                  <Text style={styles.text}>Total Income</Text>
+                  <Text style={styles.heading}>
+                    ${safeData.stats.totalIncome ?? "N/A"}
+                  </Text>
+                </div>
+                <div style={styles.stat}>
+                  <Text style={styles.text}>Total Expenses</Text>
+                  <Text style={styles.heading}>
+                    ${safeData.stats.totalExpenses ?? "N/A"}
+                  </Text>
+                </div>
+                <div style={styles.stat}>
+                  <Text style={styles.text}>Net</Text>
+                  <Text style={styles.heading}>
+                    $
+                    {(safeData.stats.totalIncome ?? 0) -
+                      (safeData.stats.totalExpenses ?? 0)}
+                  </Text>
+                </div>
+              </Section>
+            )}
 
-            {/* Category Breakdown */}
-            {data?.stats?.byCategory && (
+            {/* ✅ Safe conditional access for byCategory */}
+            {safeData?.stats?.byCategory && (
               <Section style={styles.section}>
                 <Heading style={styles.heading}>Expenses by Category</Heading>
-                {Object.entries(data?.stats.byCategory).map(
+                {Object.entries(safeData.stats.byCategory).map(
                   ([category, amount]) => (
                     <div key={category} style={styles.row}>
                       <Text style={styles.text}>{category}</Text>
@@ -97,11 +108,11 @@ export default function EmailTemplate({
               </Section>
             )}
 
-            {/* AI Insights */}
-            {data?.insights && (
+            {/* ✅ Safe AI Insights */}
+            {safeData?.insights && (
               <Section style={styles.section}>
                 <Heading style={styles.heading}>Welth Insights</Heading>
-                {data.insights.map((insight, index) => (
+                {safeData.insights.map((insight, index) => (
                   <Text key={index} style={styles.text}>
                     • {insight}
                   </Text>
@@ -129,22 +140,24 @@ export default function EmailTemplate({
             <Heading style={styles.title}>Budget Alert</Heading>
             <Text style={styles.text}>Hello {userName},</Text>
             <Text style={styles.text}>
-              You&rsquo;ve used {data?.percentageUsed.toFixed(1)}% of your
+              You&rsquo;ve used {(safeData?.percentageUsed ?? 0).toFixed(1)}% of your
               monthly budget.
             </Text>
             <Section style={styles.statsContainer}>
               <div style={styles.stat}>
                 <Text style={styles.text}>Budget Amount</Text>
-                <Text style={styles.heading}>${data?.budgetAmount}</Text>
+                <Text style={styles.heading}>${safeData?.budgetAmount ?? "N/A"}</Text>
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Spent So Far</Text>
-                <Text style={styles.heading}>${data?.totalExpenses}</Text>
+                <Text style={styles.heading}>${safeData?.totalExpenses ?? "N/A"}</Text>
               </div>
               <div style={styles.stat}>
                 <Text style={styles.text}>Remaining</Text>
                 <Text style={styles.heading}>
-                  ${data?.budgetAmount - data?.totalExpenses}
+                  $
+                  {(safeData?.budgetAmount ?? 0) -
+                    (safeData?.totalExpenses ?? 0)}
                 </Text>
               </div>
             </Section>

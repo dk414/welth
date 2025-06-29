@@ -42,7 +42,7 @@ export function CreateAccountDrawer({ children }) {
     defaultValues: {
       name: "",
       type: "CURRENT",
-      balance: "",
+      balance: "", // string here to allow typing freely
       isDefault: false,
     },
   });
@@ -55,6 +55,8 @@ export function CreateAccountDrawer({ children }) {
   } = useFetch(createAccount);
 
   const onSubmit = async (data) => {
+    // 🔧 CHANGE: Convert balance to number before sending
+    data.balance = parseFloat(data.balance);
     await createAccountFn(data);
   };
 
@@ -90,6 +92,7 @@ export function CreateAccountDrawer({ children }) {
               </label>
               <Input
                 id="name"
+                type="text" // 🔧 CHANGE: Ensure type is text
                 placeholder="e.g., Main Checking"
                 {...register("name")}
               />
@@ -131,8 +134,7 @@ export function CreateAccountDrawer({ children }) {
               </label>
               <Input
                 id="balance"
-                type="number"
-                step="0.01"
+                type="text" // 🔧 CHANGE: use text instead of number to allow full control
                 placeholder="0.00"
                 {...register("balance")}
               />
